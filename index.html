@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuro-SDR Radar Dashboard</title>
+    <!-- We use Tailwind CSS for instant, beautiful styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="max-w-2xl w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 text-center">
+        <!-- Blinking Radar Dot Animation -->
+        <div class="relative flex justify-center items-center mb-6">
+            <div id="radar-ping" class="absolute w-8 h-8 bg-green-500 rounded-full opacity-75 animate-ping hidden"></div>
+            <div class="relative w-8 h-8 bg-green-500 rounded-full shadow-[0_0_15px_#22c55e]"></div>
+        </div>
+
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-2">
+            Neuro-SDR Telemetry
+        </h1>
+        <p class="text-slate-400 mb-8">Live Spiking Neural Network Radar Feed</p>
+
+        <div class="bg-slate-900 rounded-xl p-6 border border-slate-700 mb-8">
+            <h2 class="text-lg text-slate-400 font-semibold mb-2">433 MHz Targets Intercepted</h2>
+            <div id="detection-count" class="text-7xl font-mono font-bold text-green-400">
+                0
+            </div>
+        </div>
+
+        <div id="status-box" class="px-4 py-3 rounded-lg bg-blue-900/30 border border-blue-500/30 text-blue-300">
+            Scanning airspace... Waiting for initial edge node connection.
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // PUT YOUR FIREBASE CREDENTIALS HERE
+        // =========================================================
+       const firebaseConfig = {
+        apiKey: "AIzaSyCy6PCnE4bNPo5Ts6i3ie8O65LcWqUrkyQ",
+        authDomain: "neuro-guardian-ee252.firebaseapp.com",
+        databaseURL: "https://neuro-guardian-ee252-default-rtdb.firebaseio.com",
+        projectId: "neuro-guardian-ee252",
+        storageBucket: "neuro-guardian-ee252.firebasestorage.app",
+        messagingSenderId: "444572126158",
+        appId: "1:444572126158:web:0438fa6ffd3d6cc3d6b99f"
+    };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Connect to the exact same path the ESP32 is writing to
+        const radarRef = db.ref('/Radar/TotalDetections');
+
+        // Listen for live updates in real-time
+        radarRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data !== null) {
+                // Update the big number on the screen
+                document.getElementById('detection-count').innerText = data;
+                
+                // Update the status box
+                const statusBox = document.getElementById('status-box');
+                statusBox.className = "px-4 py-3 rounded-lg bg-green-900/30 border border-green-500/30 text-green-400 transition-colors duration-500";
+                statusBox.innerText = "Target signature actively verified by SNN hardware!";
+
+                // Flash the radar ping animation
+                const ping = document.getElementById('radar-ping');
+                ping.classList.remove('hidden');
+                setTimeout(() => ping.classList.add('hidden'), 1000);
+            }
+        });
+    </script>
+</body>
+</html>
